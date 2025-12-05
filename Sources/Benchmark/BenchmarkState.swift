@@ -82,11 +82,11 @@ public struct BenchmarkState {
     }
 
     @inline(__always)
-    mutating func loop(_ benchmark: AnyBenchmark) throws {
+    mutating func loop(_ benchmark: AnyBenchmark) async throws {
         while measurements.count < iterations {
             benchmark.setUp()
             start()
-            try benchmark.run(&self)
+            try await benchmark.run(&self)
             try end()
             benchmark.tearDown()
         }

@@ -15,4 +15,4 @@
 import Benchmark
 import BenchmarkSuiteExample
 
-Benchmark.main(BenchmarkSuiteExample.suites)
+await Benchmark.main(BenchmarkSuiteExample.suites)

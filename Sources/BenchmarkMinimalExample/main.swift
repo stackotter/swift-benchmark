@@ -29,4 +29,4 @@ benchmark("add string reserved capacity") {
     }
 }
 
-Benchmark.main()
+await Benchmark.main()

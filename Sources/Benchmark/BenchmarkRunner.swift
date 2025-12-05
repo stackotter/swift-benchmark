@@ -53,20 +53,20 @@ public struct BenchmarkRunner {
     }
 
     /// Executes each suite in `self.suites` and reports results.
-    public mutating func run() throws {
+    public mutating func run() async throws {
         for suite in suites {
-            try run(suite: suite)
+            try await run(suite: suite)
         }
         reporter.report(results: results)
     }
 
-    mutating func run(suite: BenchmarkSuite) throws {
+    mutating func run(suite: BenchmarkSuite) async throws {
         for benchmark in suite.benchmarks {
-            try run(benchmark: benchmark, suite: suite)
+            try await run(benchmark: benchmark, suite: suite)
         }
     }
 
-    mutating func run(benchmark: AnyBenchmark, suite: BenchmarkSuite) throws {
+    mutating func run(benchmark: AnyBenchmark, suite: BenchmarkSuite) async throws {
         let settings = BenchmarkSettings([
             defaultSettings,
             self.customDefaults,
@@ -90,15 +90,15 @@ public struct BenchmarkRunner {
 
         var warmupState: BenchmarkState? = nil
         if settings.warmupIterations > 0 {
-            warmupState = doNIterations(
+            warmupState = await doNIterations(
                 settings.warmupIterations, benchmark: benchmark, suite: suite, settings: settings)
         }
 
         var state: BenchmarkState
         if let n = settings.iterations {
-            state = doNIterations(n, benchmark: benchmark, suite: suite, settings: settings)
+            state = await doNIterations(n, benchmark: benchmark, suite: suite, settings: settings)
         } else {
-            state = doAdaptiveIterations(
+            state = await doAdaptiveIterations(
                 benchmark: benchmark, suite: suite, settings: settings)
         }
 
@@ -160,12 +160,12 @@ public struct BenchmarkRunner {
 
     func doAdaptiveIterations(
         benchmark: AnyBenchmark, suite: BenchmarkSuite, settings: BenchmarkSettings
-    ) -> BenchmarkState {
+    ) async -> BenchmarkState {
         var n: Int = 1
         var state: BenchmarkState = BenchmarkState()
 
         while true {
-            state = doNIterations(n, benchmark: benchmark, suite: suite, settings: settings)
+            state = await doNIterations(n, benchmark: benchmark, suite: suite, settings: settings)
             if n != 1 && hasCollectedEnoughData(state.measurements, settings: settings) { break }
             n = predictNumberOfIterationsNeeded(state.measurements, settings: settings)
             assert(
@@ -178,10 +178,10 @@ public struct BenchmarkRunner {
 
     func doNIterations(
         _ n: Int, benchmark: AnyBenchmark, suite: BenchmarkSuite, settings: BenchmarkSettings
-    ) -> BenchmarkState {
+    ) async -> BenchmarkState {
         var state = BenchmarkState(iterations: n, settings: settings)
         do {
-            try state.loop(benchmark)
+            try await state.loop(benchmark)
         } catch is BenchmarkTermination {
         } catch {
             fatalError("Unexpected error: \(error).")

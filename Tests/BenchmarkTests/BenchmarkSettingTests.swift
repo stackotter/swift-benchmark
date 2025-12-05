@@ -23,13 +23,13 @@ final class BenchmarkSettingTests: XCTestCase {
         counts expected: [Int],
         cli: [BenchmarkSetting],
         customDefaults: [BenchmarkSetting] = []
-    ) throws {
+    ) async throws {
         var settings: [BenchmarkSetting] = [Format(.none), Quiet(true)]
         settings.append(contentsOf: cli)
         var runner = BenchmarkRunner(
             suites: [suite], settings: settings, customDefaults: customDefaults)
 
-        try runner.run()
+        try await runner.run()
         XCTAssertEqual(runner.results.count, expected.count)
         let counts = Array(
             runner.results.map { result in
@@ -38,136 +38,136 @@ final class BenchmarkSettingTests: XCTestCase {
         XCTAssertEqual(counts, expected)
     }
 
-    func testDefaultSetting() throws {
+    func testDefaultSetting() async throws {
         let suite = BenchmarkSuite(name: "Test") { suite in
             suite.benchmark("a") {}
             suite.benchmark("b") {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1_000_000, 1_000_000],
             cli: [])
     }
 
-    func testSuiteSetting() throws {
+    func testSuiteSetting() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(42)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b") {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [42, 42],
             cli: [])
     }
 
-    func testBenchmarkSetting() throws {
+    func testBenchmarkSetting() async throws {
         let suite = BenchmarkSuite(name: "Test") { suite in
             suite.benchmark("a") {}
             suite.benchmark("b", settings: Iterations(42)) {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1_000_000, 42],
             cli: [])
     }
 
-    func testBenchmarkSettingOverridesSuiteSetting() throws {
+    func testBenchmarkSettingOverridesSuiteSetting() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(42)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b", settings: Iterations(21)) {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [42, 21],
             cli: [])
     }
 
-    func testCliSetting() throws {
+    func testCliSetting() async throws {
         let suite = BenchmarkSuite(name: "Test") { suite in
             suite.benchmark("a") {}
             suite.benchmark("b") {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1, 1],
             cli: [Iterations(1)])
     }
 
-    func testCliOverridesSuiteSetting() throws {
+    func testCliOverridesSuiteSetting() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(2)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b") {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1, 1],
             cli: [Iterations(1)])
     }
 
-    func testCliOverridesBenchmarkSetting() throws {
+    func testCliOverridesBenchmarkSetting() async throws {
         let suite = BenchmarkSuite(name: "Test") { suite in
             suite.benchmark("a") {}
             suite.benchmark("b", settings: Iterations(2)) {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1, 1],
             cli: [Iterations(1)])
     }
 
-    func testCliOverridesBenchmarkAndSuiteSetting() throws {
+    func testCliOverridesBenchmarkAndSuiteSetting() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(2)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b", settings: Iterations(3)) {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1, 1],
             cli: [Iterations(1)])
     }
 
-    func testCustomDefaults() throws {
+    func testCustomDefaults() async throws {
         let suite = BenchmarkSuite(name: "Test") { suite in
             suite.benchmark("a") {}
             suite.benchmark("b") {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [1, 1],
             cli: [],
             customDefaults: [Iterations(1)])
     }
 
-    func testCustomDafaultsOverridenBySuite() throws {
+    func testCustomDafaultsOverridenBySuite() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(3)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b") {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [3, 3],
             cli: [],
             customDefaults: [Iterations(1)])
     }
 
-    func testCustomDafaultsOverridenByBenchmark() throws {
+    func testCustomDafaultsOverridenByBenchmark() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(3)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b", settings: Iterations(4)) {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [3, 4],
             cli: [],
             customDefaults: [Iterations(1)])
     }
 
-    func testCustomDafaultsOverridenByCli() throws {
+    func testCustomDafaultsOverridenByCli() async throws {
         let suite = BenchmarkSuite(name: "Test", settings: Iterations(3)) { suite in
             suite.benchmark("a") {}
             suite.benchmark("b", settings: Iterations(4)) {}
         }
-        try assertNumberOfIterations(
+        try await assertNumberOfIterations(
             suite: suite,
             counts: [5, 5],
             cli: [Iterations(5)],

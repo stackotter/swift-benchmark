@@ -13,12 +13,12 @@
 // limitations under the License.
 
 /// Run each benchmark once, to make them work as tests. 
-public func runTests(suites: [BenchmarkSuite]) {
+public func runTests(suites: [BenchmarkSuite]) async {
     for suite in suites {
         for benchmark in suite.benchmarks {
             var state = BenchmarkState(iterations: 1, settings: BenchmarkSettings())
             do {
-                try benchmark.run(&state)
+                try await benchmark.run(&state)
             } catch is BenchmarkTermination {
             } catch {
                 fatalError("Unexpected error: \(error).")
@@ -28,18 +28,18 @@ public func runTests(suites: [BenchmarkSuite]) {
 }
 
 /// Create a sequence of tests that can be used for XCTest.allTests.
-public func makeTests<T>(_ type: T.Type, suites: [BenchmarkSuite]) -> [(String, (T) -> () -> Void)]
+public func makeTests<T>(_ type: T.Type, suites: [BenchmarkSuite]) -> [(String, (T) -> () async -> Void)]
 {
-    var result: [(String, (T) -> () -> Void)] = []
+    var result: [(String, (T) -> () async -> Void)] = []
 
     for suite in suites {
         for benchmark in suite.benchmarks {
             let name = "\(suite.name): \(benchmark.name)"
-            let closure: (T) -> () -> Void = { _ in
+            let closure: (T) -> () async -> Void = { _ in
                 return {
                     var state = BenchmarkState(iterations: 1, settings: BenchmarkSettings())
                     do {
-                        try benchmark.run(&state)
+                        try await benchmark.run(&state)
                     } catch is BenchmarkTermination {
                     } catch {
                         fatalError("Unexpected error: \(error).")

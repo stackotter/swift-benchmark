@@ -18,8 +18,8 @@ import XCTest
 
 final class BenchmarkSuiteTests: XCTestCase {
     // A single catch-all test for macOS. 
-    func testBenchmarks() {
-        Benchmark.runTests(suites: BenchmarkSuiteExample.suites)
+    func testBenchmarks() async {
+        await Benchmark.runTests(suites: BenchmarkSuiteExample.suites)
     }
 
     // A more fine-grain per-benchmark tests used outside of macOS. 

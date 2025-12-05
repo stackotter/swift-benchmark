@@ -49,6 +49,11 @@ public class BenchmarkSuite {
         register(benchmark: benchmark)
     }
 
+    public func benchmark(_ name: String, function f: @escaping () async throws -> Void) {
+        let benchmark = ClosureBenchmark(name, settings: [], closure: f)
+        register(benchmark: benchmark)
+    }
+
     public func benchmark(
         _ name: String, function f: @escaping (inout BenchmarkState) throws -> Void
     ) {
@@ -57,7 +62,21 @@ public class BenchmarkSuite {
     }
 
     public func benchmark(
+        _ name: String, function f: @escaping (inout BenchmarkState) async throws -> Void
+    ) {
+        let benchmark = InoutClosureBenchmark(name, settings: [], closure: f)
+        register(benchmark: benchmark)
+    }
+
+    public func benchmark(
         _ name: String, settings: BenchmarkSetting..., function f: @escaping () throws -> Void
+    ) {
+        let benchmark = ClosureBenchmark(name, settings: settings, closure: f)
+        register(benchmark: benchmark)
+    }
+
+    public func benchmark(
+        _ name: String, settings: BenchmarkSetting..., function f: @escaping () async throws -> Void
     ) {
         let benchmark = ClosureBenchmark(name, settings: settings, closure: f)
         register(benchmark: benchmark)
@@ -72,7 +91,22 @@ public class BenchmarkSuite {
     }
 
     public func benchmark(
+        _ name: String, settings: BenchmarkSetting...,
+        function f: @escaping (inout BenchmarkState) async throws -> Void
+    ) {
+        let benchmark = InoutClosureBenchmark(name, settings: settings, closure: f)
+        register(benchmark: benchmark)
+    }
+
+    public func benchmark(
         _ name: String, settings: [BenchmarkSetting], function f: @escaping () throws -> Void
+    ) {
+        let benchmark = ClosureBenchmark(name, settings: settings, closure: f)
+        register(benchmark: benchmark)
+    }
+
+    public func benchmark(
+        _ name: String, settings: [BenchmarkSetting], function f: @escaping () async throws -> Void
     ) {
         let benchmark = ClosureBenchmark(name, settings: settings, closure: f)
         register(benchmark: benchmark)
@@ -81,6 +115,14 @@ public class BenchmarkSuite {
     public func benchmark(
         _ name: String, settings: [BenchmarkSetting],
         function f: @escaping (inout BenchmarkState) throws -> Void
+    ) {
+        let benchmark = InoutClosureBenchmark(name, settings: settings, closure: f)
+        register(benchmark: benchmark)
+    }
+
+    public func benchmark(
+        _ name: String, settings: [BenchmarkSetting],
+        function f: @escaping (inout BenchmarkState) async throws -> Void
     ) {
         let benchmark = InoutClosureBenchmark(name, settings: settings, closure: f)
         register(benchmark: benchmark)

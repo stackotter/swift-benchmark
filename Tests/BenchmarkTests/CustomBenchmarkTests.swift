@@ -17,7 +17,7 @@ import XCTest
 @testable import Benchmark
 
 final class CustomBenchmarkTests: XCTestCase {
-    func testSetUpAndTearDown() throws {
+    func testSetUpAndTearDown() async throws {
         let benchmark = MockBenchmark()
 
         let suite = BenchmarkSuite(name: "suite")
@@ -25,7 +25,7 @@ final class CustomBenchmarkTests: XCTestCase {
 
         var runner = BenchmarkRunner(suites: [suite], settings: [Format(.none), Quiet(true)])
 
-        try runner.run()
+        try await runner.run()
 
         XCTAssertTrue(benchmark.didSetUp)
         XCTAssertTrue(benchmark.didRun)

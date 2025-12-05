@@ -16,10 +16,10 @@ public func main(
     _ suites: [BenchmarkSuite] = [defaultBenchmarkSuite],
     settings: [BenchmarkSetting] = parseArguments(),
     customDefaults: [BenchmarkSetting] = defaultSettings
-) {
+) async {
     var runner = BenchmarkRunner(
         suites: suites,
         settings: settings,
         customDefaults: customDefaults)
-    try! runner.run()
+    try! await runner.run()
 }

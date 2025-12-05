@@ -17,29 +17,33 @@ import XCTest
 @testable import Benchmark
 
 final class BenchmarkRunnerTests: XCTestCase {
-    func testFilterBenchmarksSuffix() throws {
+    func testFilterBenchmarksSuffix() async throws {
         let settings: [BenchmarkSetting] = [Iterations(1), Filter("b1")]
-        XCTAssertEqual(Set(["suite1.b1", "suite2.b1"]), runBenchmarks(settings: settings))
+        let result = await runBenchmarks(settings: settings)
+        XCTAssertEqual(Set(["suite1.b1", "suite2.b1"]), result)
     }
 
-    func testFilterBenchmarksSuiteName() throws {
+    func testFilterBenchmarksSuiteName() async throws {
         let settings: [BenchmarkSetting] = [Iterations(1), Filter("suite1")]
-        XCTAssertEqual(Set(["suite1.b1", "suite1.b2"]), runBenchmarks(settings: settings))
+        let result = await runBenchmarks(settings: settings)
+        XCTAssertEqual(Set(["suite1.b1", "suite1.b2"]), result)
     }
 
-    func testFilterBenchmarksFullName() throws {
+    func testFilterBenchmarksFullName() async throws {
         let settings: [BenchmarkSetting] = [Iterations(1), Filter("suite1.b1")]
-        XCTAssertEqual(Set(["suite1.b1"]), runBenchmarks(settings: settings))
+        let result = await runBenchmarks(settings: settings)
+        XCTAssertEqual(Set(["suite1.b1"]), result)
     }
 
-    func testAutomaticallyDetectIterations() throws {
+    func testAutomaticallyDetectIterations() async throws {
         let settings: [BenchmarkSetting] = []
+        let result = await runBenchmarks(settings: settings)
         XCTAssertEqual(
             Set(["suite2.b2", "suite2.b1", "suite1.b2", "suite1.b1"]),
-            runBenchmarks(settings: settings))
+            result)
     }
 
-    func testWarmupMeasurements() throws {
+    func testWarmupMeasurements() async throws {
         let suite = BenchmarkSuite(name: "Suite")
 
         suite.benchmark("no warmup") {
@@ -47,14 +51,14 @@ final class BenchmarkRunnerTests: XCTestCase {
         suite.benchmark("needs warmup", settings: WarmupIterations(10)) {
         }
 
-        let results = try run(suites: [suite], settings: [Iterations(100)])
+        let results = try await run(suites: [suite], settings: [Iterations(100)])
         XCTAssertEqual(results.count, 2)
 
         let counts = results.map { $0.warmupMeasurements.count }
         XCTAssertEqual(counts, [0, 10])
     }
 
-    func testCustomMeasurements() throws {
+    func testCustomMeasurements() async throws {
         let suite = BenchmarkSuite(name: "Suite")
 
         suite.benchmark("noop") {
@@ -84,14 +88,14 @@ final class BenchmarkRunnerTests: XCTestCase {
             }
         }
 
-        let results = try run(suites: [suite], settings: [Iterations(100)])
+        let results = try await run(suites: [suite], settings: [Iterations(100)])
         XCTAssertEqual(results.count, 5)
 
         let counts = results.map { $0.measurements.count }
         XCTAssertEqual(counts, [100, 100, 100, 100, 100])
     }
 
-    func testCustomCounters() throws {
+    func testCustomCounters() async throws {
         let suite = BenchmarkSuite(name: "Suite")
 
         suite.benchmark("counter increment") { state in
@@ -104,7 +108,7 @@ final class BenchmarkRunnerTests: XCTestCase {
             state.counters["n"] = 42
         }
 
-        let results = try run(suites: [suite], settings: [Iterations(100)])
+        let results = try await run(suites: [suite], settings: [Iterations(100)])
         XCTAssertEqual(results.count, 3)
 
         let values = Array(results.map { $0.counters["n"] })
@@ -123,19 +127,19 @@ final class BenchmarkRunnerTests: XCTestCase {
 }
 
 extension BenchmarkRunnerTests {
-    func run(suites: [BenchmarkSuite], settings: [BenchmarkSetting]) throws -> [BenchmarkResult] {
+    func run(suites: [BenchmarkSuite], settings: [BenchmarkSetting]) async throws -> [BenchmarkResult] {
         var allSettings: [BenchmarkSetting] = [Format(.none), Quiet(true)]
         allSettings.append(contentsOf: settings)
         var runner = BenchmarkRunner(
             suites: suites,
             settings: allSettings)
-        try runner.run()
+        try await runner.run()
         return runner.results
     }
 
     /// Builds and runs a few suites of benchmarks with provided settings; returns the set of
     /// benchmark names that were run.
-    func runBenchmarks(settings: [BenchmarkSetting]) -> Set<String> {
+    func runBenchmarks(settings: [BenchmarkSetting]) async -> Set<String> {
         let suite1 = BenchmarkSuite(name: "suite1")
         let suite2 = BenchmarkSuite(name: "suite2")
 
@@ -147,7 +151,7 @@ extension BenchmarkRunnerTests {
         suite2.benchmark("b2") { benchmarksRun.insert("suite2.b2") }
 
         do {
-            let _ = try run(suites: [suite1, suite2], settings: settings)
+            let _ = try await run(suites: [suite1, suite2], settings: settings)
             return benchmarksRun
         } catch {
             return Set<String>()
